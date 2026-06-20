@@ -151,10 +151,14 @@ export class PersistentRunner extends EventEmitter implements AgentRunner {
 
     console.log('[persistent-runner] Starting persistent process...');
 
+    const childEnv = buildCliEnv(this.channelId);
+    if (process.env.ANTHROPIC_API_KEY) {
+      childEnv.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    }
     const proc = spawn('claude', args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: this.workdir,
-      env: buildCliEnv(this.channelId),
+      env: childEnv,
     });
     this.process = proc;
     this.processAlive = true;
