@@ -80,6 +80,7 @@ export function registerDiscordSchedulerBridge(deps: SchedulerBridgeDeps): void 
         result,
         sessionId: newSessionId,
         attachments,
+        finalText,
       } = await agentRunner.run(agentPrompt, {
         skipPermissions: config.agent.config.skipPermissions ?? false,
         sessionId: undefined,
@@ -91,8 +92,13 @@ export function registerDiscordSchedulerBridge(deps: SchedulerBridgeDeps): void 
       setSession(channelId, newSessionId, 'scheduler');
 
       // 結果を送信（テキスト由来 + 構造化 attachments を合算・重複排除）
-      const { filePaths, displayText } = buildAttachmentResult(result, attachments);
-      if (!displayText.trim() && filePaths.length === 0) {
+      // スケジューラ起点ターンは途中経過の実況テキストを投稿せず、
+      // 最後のテキストブロック（finalText）のみを使う（issue: 内部状態の漏洩・二重投稿）
+      const { filePaths, displayText } = buildAttachmentResult(finalText ?? result, attachments);
+      // [SILENT] マーカー: スキルが「何も投稿しない」を明示するための規約。
+      // 「何も出力しない」より「マーカーだけ出力する」方がモデルが確実に守れる
+      const isSilentMarker = /^\[?(SILENT|NO_SPEAK|NO_OUTPUT)\]?$/i.test(displayText.trim());
+      if ((!displayText.trim() || isSilentMarker) && filePaths.length === 0) {
         await thinkingMsg.delete().catch(() => {});
         return result;
       }

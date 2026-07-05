@@ -190,6 +190,7 @@ export class ClaudeCodeRunner extends CliRunnerBase {
 
   protected createStreamParser(callbacks: StreamCallbacks): CliStreamParser {
     let fullText = '';
+    let finalText = '';
     let sessionId = '';
 
     return {
@@ -219,13 +220,18 @@ export class ClaudeCodeRunner extends CliRunnerBase {
           // ストリーミング中の累積テキストと最終 result をマージ
           // （ツール呼び出し前のテキストが result から消えるのを防ぐ）
           if (event.result) {
+            finalText = stripToolCallArtifacts(event.result).trim();
             fullText = mergeTexts(fullText, stripToolCallArtifacts(event.result));
           }
         }
 
         return undefined;
       },
-      finalize: () => ({ result: finalizeDisplayText(fullText), sessionId }),
+      finalize: () => ({
+        result: finalizeDisplayText(fullText),
+        finalText: finalText || undefined,
+        sessionId,
+      }),
     };
   }
 }

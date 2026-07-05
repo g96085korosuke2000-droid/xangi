@@ -266,6 +266,12 @@ export async function processPrompt(
       discordToolHistoryByMessageId.delete(replyMessage.id);
     }
 
+    // テキストも添付もなければ思考中メッセージを削除して無言終了
+    if (!displayTextWithTools.trim() && filePaths.length === 0) {
+      await replyMessage?.delete().catch(() => {});
+      return null;
+    }
+
     // === セパレータで明示的に分割（content-digest等で複数投稿を1応答に含める用途）
     // LLMが前後に空白や余分な改行を入れることがあるため、正規表現で緩くマッチ
     const SEPARATOR_REGEX = /\n\s*===\s*\n/;

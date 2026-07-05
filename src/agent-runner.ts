@@ -27,6 +27,12 @@ export interface RunResult {
   result: string;
   sessionId: string;
   /**
+   * ターン最後のテキストブロックのみ（CLI の result フィールド由来）。
+   * ツール呼び出し合間の実況テキストを含まないため、スケジューラ等の
+   * 「最終メッセージだけ投稿したい」経路で使う。バックエンド未対応時は undefined。
+   */
+  finalText?: string;
+  /**
    * 構造化された添付ファイルパス（realpath、サンドボックス検証済み）。
    * Local LLM の attach_file ツール経由で宣言された添付。応答テキストからの
    * MEDIA: 抽出（extractFilePaths）とは別経路で、両者は呼び出し側で合算・重複排除される。

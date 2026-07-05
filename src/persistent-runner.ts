@@ -386,6 +386,7 @@ export class PersistentRunner extends EventEmitter implements AgentRunner {
       } else {
         // ストリーミング中の累積テキストと最終 result をマージ
         // （ツール呼び出し前のテキストが result から消えるのを防ぐ）
+        const finalText = json.result ? stripToolCallArtifacts(json.result).trim() : '';
         if (json.result) {
           this.fullText = mergeTexts(this.fullText, stripToolCallArtifacts(json.result));
         }
@@ -394,6 +395,7 @@ export class PersistentRunner extends EventEmitter implements AgentRunner {
           // 本文が空（strip 後に空 / モデルが本文を出さず end_turn）の場合は
           // 誤解を招く `✅` ではなく正直な fallback を返す
           result: finalizeDisplayText(this.fullText),
+          finalText: finalText || undefined,
           sessionId: this.sessionId,
         };
 
